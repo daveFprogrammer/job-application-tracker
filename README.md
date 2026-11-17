@@ -1,6 +1,10 @@
 # Job Application Tracker
 
 [![tests](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/tests.yml)
+[![reminders](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/reminders.yml/badge.svg)](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/reminders.yml)
+[![Live demo](https://img.shields.io/badge/demo-onrender.com-46e3b7?logo=render&logoColor=white)](https://job-application-tracker-wdwn.onrender.com)
+
+**Demo live: [job-application-tracker-wdwn.onrender.com](https://job-application-tracker-wdwn.onrender.com)**: registrati con una tua email per provarla. Gira sul piano free di Render, quindi dopo 15 minuti di inattività va in sleep e la prima richiesta può impiegare 30-60 secondi.
 
 Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board kanban** (Wishlist → Applied → Interviewing → Offer / Rejected) che si sposta con il **drag and drop**. Ogni candidatura ha i suoi **colloqui**, le sue **note** e i suoi **promemoria via email**, inviati in background da **code e job** di Laravel.
 
@@ -144,6 +148,7 @@ Il workflow `reminders` parte ogni 30 minuti e si può lanciare anche a mano da 
 
 - **Cold start**: dopo 15 minuti senza traffico Render sospende l'istanza, e la prima richiesta impiega fino a circa un minuto.
 - **Cron best effort**: GitHub può ritardare i workflow schedulati e li disattiva dopo 60 giorni senza attività nel repository.
+- **SMTP solo su porta 2525**: il piano free di Render blocca in uscita le porte 25, 465 e 587 (vedi il passo 2).
 - **Precisione dei promemoria**: circa 30 minuti (vedi sopra).
 - **Fuso orario unico**: le date si inseriscono nel fuso `APP_TIMEZONE` (default `Europe/Rome`).
 
