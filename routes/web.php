@@ -3,6 +3,7 @@
 use App\Http\Controllers\Applications\InterviewController;
 use App\Http\Controllers\Applications\NoteController;
 use App\Http\Controllers\Applications\ReminderController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\JobApplicationController;
 use Illuminate\Support\Facades\Route;
@@ -28,5 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('reminders.store');
     Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
 });
+
+Route::post('cron/run', CronController::class)
+    ->middleware('throttle:10,1')
+    ->name('cron.run');
 
 require __DIR__.'/settings.php';

@@ -17,6 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
+        // Render (and most PaaS) terminate TLS on a proxy in front of the app.
+        $middleware->trustProxies(at: '*');
+
+        // Machine-to-machine endpoint, authenticated with a bearer token.
+        $middleware->validateCsrfTokens(except: ['cron/run']);
+
         $middleware->web(append: [
             HandleAppearance::class,
             HandleInertiaRequests::class,

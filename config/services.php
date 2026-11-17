@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // Bearer token required by POST /cron/run (see CronController).
+    'cron' => [
+        'secret' => env('CRON_SECRET'),
+    ],
+
 ];
