@@ -47,8 +47,10 @@ services:
             value: smtp
           - key: MAIL_HOST
             sync: false # e.g. smtp-relay.brevo.com
+          # Render free web services block outbound SMTP on 25/465/587:
+          # use the alternative submission port (supported by Brevo).
           - key: MAIL_PORT
-            value: '587'
+            value: '2525'
           - key: MAIL_USERNAME
             sync: false
           - key: MAIL_PASSWORD
