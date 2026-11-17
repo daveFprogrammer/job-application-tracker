@@ -1,0 +1,16 @@
+{
+	frankenphp
+	# TLS is terminated by Render's proxy.
+	auto_https off
+	admin off
+}
+
+:{$PORT:8080} {
+	root * /app/public
+	encode zstd br gzip
+
+	@static path /build/* /favicon.ico /favicon.svg /apple-touch-icon.png /robots.txt
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	php_server
+}
