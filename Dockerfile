@@ -43,7 +43,12 @@ COPY docker/Caddyfile /etc/frankenphp/Caddyfile
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/app-entrypoint
 
 # Run as an unprivileged user: Caddy needs its data/config dirs to be writable.
-RUN chown -R www-data:www-data /data/caddy /config/caddy
+# The image grants frankenphp cap_net_bind_service (to bind ports < 1024), but
+# Render starts containers without that capability, so the kernel refuses to
+# exec the binary ("Operation not permitted"). We listen on $PORT (> 1024), so
+# drop the file capability instead.
+RUN chown -R www-data:www-data /data/caddy /config/caddy \
+    && setcap -r /usr/local/bin/frankenphp
 
 ENV APP_ENV=production \
     LOG_CHANNEL=stderr \
