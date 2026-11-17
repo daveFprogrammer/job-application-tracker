@@ -111,7 +111,9 @@ La CI (`.github/workflows/tests.yml`) esegue tutto questo su ogni push e pull re
 
 ### 2. SMTP per le email
 
-Va bene qualunque SMTP. [Brevo](https://www.brevo.com) offre 300 email al giorno gratis e permette di verificare un singolo indirizzo mittente, senza un dominio. Annota host (`smtp-relay.brevo.com`), porta `587`, login e chiave SMTP.
+Va bene qualunque SMTP. [Brevo](https://www.brevo.com) offre 300 email al giorno gratis e permette di verificare un singolo indirizzo mittente, senza un dominio. Annota host (`smtp-relay.brevo.com`), login e chiave SMTP.
+
+> **Porta 2525, non 587.** Da settembre 2025 i web service free di Render bloccano il traffico in uscita verso le porte SMTP 25, 465 e 587: la connessione resta appesa e la richiesta finisce in errore 500. Brevo accetta anche la porta `2525`, già impostata in `render.yaml`.
 
 ### 3. Web service su Render
 
