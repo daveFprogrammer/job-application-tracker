@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Enums\ApplicationStatus;
 use App\Enums\WorkMode;
+use App\Observers\JobApplicationObserver;
 use Carbon\CarbonImmutable;
 use Database\Factories\JobApplicationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -35,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'company', 'position', 'job_url', 'location', 'work_mode',
     'salary_range', 'status', 'position_in_column', 'applied_at', 'description',
 ])]
+#[ObservedBy(JobApplicationObserver::class)]
 class JobApplication extends Model
 {
     /** @use HasFactory<JobApplicationFactory> */
@@ -66,6 +69,12 @@ class JobApplication extends Model
     public function notes(): HasMany
     {
         return $this->hasMany(Note::class)->latest();
+    }
+
+    /** @return HasMany<StatusChange, $this> */
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(StatusChange::class)->orderBy('changed_at')->orderBy('id');
     }
 
     /** @return HasMany<Reminder, $this> */
