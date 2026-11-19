@@ -27,7 +27,15 @@ class JobApplicationController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        // Read leniently: a bad value in the URL just means "no filter".
+        $filters = [
+            'search' => mb_substr(trim($request->string('search')->toString()), 0, 100),
+            'work_mode' => WorkMode::tryFrom($request->string('work_mode')->toString()),
+            'hide_rejected' => $request->boolean('hide_rejected'),
+        ];
+
         $applications = $user->jobApplications()
+            ->filter($filters['search'], $filters['work_mode'], $filters['hide_rejected'])
             ->withCount(['interviews', 'notes'])
             ->addSelect(['next_interview_at' => function ($query) {
                 $query->selectRaw('min(scheduled_at)')
@@ -42,6 +50,13 @@ class JobApplicationController extends Controller
         return Inertia::render('applications/Board', [
             'applications' => JobApplicationResource::collection($applications),
             'statuses' => ApplicationStatus::options(),
+            'workModes' => WorkMode::options(),
+            'filters' => [
+                'search' => $filters['search'],
+                'work_mode' => $filters['work_mode']?->value,
+                'hide_rejected' => $filters['hide_rejected'],
+            ],
+            'total' => $user->jobApplications()->count(),
         ]);
     }
 

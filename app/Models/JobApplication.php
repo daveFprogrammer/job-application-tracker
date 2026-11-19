@@ -7,6 +7,8 @@ use App\Enums\WorkMode;
 use Carbon\CarbonImmutable;
 use Database\Factories\JobApplicationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -70,5 +72,36 @@ class JobApplication extends Model
     public function reminders(): HasMany
     {
         return $this->hasMany(Reminder::class)->orderBy('remind_at');
+    }
+
+    /**
+     * Board filters: free-text search on company, role and location (case
+     * insensitive), work mode, and optionally hiding the rejected column.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function filter(Builder $query, ?string $search, ?WorkMode $workMode, bool $hideRejected): void
+    {
+        $search = trim((string) $search);
+
+        if ($search !== '') {
+            // Treat the user input literally: escape the LIKE wildcards.
+            $pattern = '%'.addcslashes($search, '\%_').'%';
+
+            $query->where(function (Builder $query) use ($pattern) {
+                foreach (['company', 'position', 'location'] as $column) {
+                    $query->orWhereRaw("lower({$column}) like lower(?)", [$pattern]);
+                }
+            });
+        }
+
+        if ($workMode !== null) {
+            $query->where('work_mode', $workMode);
+        }
+
+        if ($hideRejected) {
+            $query->where('status', '!=', ApplicationStatus::Rejected);
+        }
     }
 }
