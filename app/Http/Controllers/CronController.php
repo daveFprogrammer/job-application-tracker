@@ -32,8 +32,13 @@ class CronController extends Controller
             '--tries' => 3,
         ]);
 
+        // The demo account is rebuilt once a day (no-op when disabled or fresh).
+        Artisan::call('demo:reset', ['--if-stale' => true]);
+        $demo = trim(Artisan::output());
+
         return response()->json([
             'reminders' => $dispatched,
+            'demo' => $demo,
             'ran_at' => now()->toIso8601String(),
         ]);
     }

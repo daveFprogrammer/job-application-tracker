@@ -9,3 +9,5 @@ use Illuminate\Support\Facades\Schedule;
 | see App\Http\Controllers\CronController.
 */
 Schedule::command('reminders:dispatch')->everyMinute()->withoutOverlapping();
+
+Schedule::command('demo:reset --if-stale')->hourly()->withoutOverlapping();
