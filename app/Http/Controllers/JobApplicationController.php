@@ -92,7 +92,7 @@ class JobApplicationController extends Controller
     {
         Gate::authorize('manage', $application);
 
-        $application->load(['interviews.reminder', 'notes', 'reminders']);
+        $application->load(['interviews.reminder', 'notes', 'reminders', 'statusChanges']);
 
         return Inertia::render('applications/Show', [
             'application' => new JobApplicationResource($application),
