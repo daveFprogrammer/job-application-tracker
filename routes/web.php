@@ -5,10 +5,15 @@ use App\Http\Controllers\Applications\NoteController;
 use App\Http\Controllers\Applications\ReminderController;
 use App\Http\Controllers\CronController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\JobApplicationController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+Route::post('demo', [DemoController::class, 'store'])
+    ->middleware(['guest', 'throttle:10,1'])
+    ->name('demo.login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
