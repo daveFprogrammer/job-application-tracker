@@ -5,6 +5,14 @@ export type ApplicationStatus =
     | 'offer'
     | 'rejected';
 
+export type WorkMode = 'remote' | 'hybrid' | 'onsite';
+
+export type BoardFilters = {
+    search: string;
+    work_mode: WorkMode | null;
+    hide_rejected: boolean;
+};
+
 export type Option<T extends string = string> = {
     value: T;
     label: string;
@@ -33,6 +41,14 @@ export type Note = {
     created_at: string;
 };
 
+export type StatusChange = {
+    id: number;
+    from_status: ApplicationStatus | null;
+    to_status: ApplicationStatus;
+    to_label: string;
+    changed_at: string;
+};
+
 export type Reminder = {
     id: number;
     remind_at: string;
@@ -59,6 +75,7 @@ export type JobApplication = {
     interviews?: Interview[];
     notes?: Note[];
     reminders?: Reminder[];
+    status_changes?: StatusChange[];
     created_at: string;
     updated_at: string;
 };

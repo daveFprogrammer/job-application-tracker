@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import DemoButton from '@/components/DemoButton.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -107,4 +108,12 @@ defineProps<{
             <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
         </div>
     </Form>
+
+    <div
+        v-if="$page.props.demo.enabled"
+        class="mt-6 flex flex-col items-center gap-2 border-t pt-6 text-sm text-muted-foreground"
+    >
+        Just looking around?
+        <DemoButton class="w-full [&>button]:w-full" />
+    </div>
 </template>

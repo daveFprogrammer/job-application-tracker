@@ -19,6 +19,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property int $id
  * @property string $name
  * @property string $email
+ * @property bool $is_demo
  * @property Carbon|null $email_verified_at
  * @property string $password
  * @property string|null $two_factor_secret
@@ -44,9 +45,30 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'is_demo' => 'boolean',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * The shared demo account has a fake address: never email it.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        if (! $this->is_demo) {
+            parent::sendEmailVerificationNotification();
+        }
+    }
+
+    /**
+     * @param  string  $token
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        if (! $this->is_demo) {
+            parent::sendPasswordResetNotification($token);
+        }
     }
 
     /** @return HasMany<JobApplication, $this> */

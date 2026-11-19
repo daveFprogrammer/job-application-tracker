@@ -4,9 +4,13 @@ namespace App\Models;
 
 use App\Enums\ApplicationStatus;
 use App\Enums\WorkMode;
+use App\Observers\JobApplicationObserver;
 use Carbon\CarbonImmutable;
 use Database\Factories\JobApplicationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'company', 'position', 'job_url', 'location', 'work_mode',
     'salary_range', 'status', 'position_in_column', 'applied_at', 'description',
 ])]
+#[ObservedBy(JobApplicationObserver::class)]
 class JobApplication extends Model
 {
     /** @use HasFactory<JobApplicationFactory> */
@@ -66,9 +71,46 @@ class JobApplication extends Model
         return $this->hasMany(Note::class)->latest();
     }
 
+    /** @return HasMany<StatusChange, $this> */
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(StatusChange::class)->orderBy('changed_at')->orderBy('id');
+    }
+
     /** @return HasMany<Reminder, $this> */
     public function reminders(): HasMany
     {
         return $this->hasMany(Reminder::class)->orderBy('remind_at');
+    }
+
+    /**
+     * Board filters: free-text search on company, role and location (case
+     * insensitive), work mode, and optionally hiding the rejected column.
+     *
+     * @param  Builder<self>  $query
+     */
+    #[Scope]
+    protected function filter(Builder $query, ?string $search, ?WorkMode $workMode, bool $hideRejected): void
+    {
+        $search = trim((string) $search);
+
+        if ($search !== '') {
+            // Treat the user input literally: escape the LIKE wildcards.
+            $pattern = '%'.addcslashes($search, '\%_').'%';
+
+            $query->where(function (Builder $query) use ($pattern) {
+                foreach (['company', 'position', 'location'] as $column) {
+                    $query->orWhereRaw("lower({$column}) like lower(?)", [$pattern]);
+                }
+            });
+        }
+
+        if ($workMode !== null) {
+            $query->where('work_mode', $workMode);
+        }
+
+        if ($hideRejected) {
+            $query->where('status', '!=', ApplicationStatus::Rejected);
+        }
     }
 }

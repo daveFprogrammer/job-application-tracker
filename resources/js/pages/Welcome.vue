@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import { Bell, CalendarClock, KanbanSquare } from '@lucide/vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import DemoButton from '@/components/DemoButton.vue';
 import { Button } from '@/components/ui/button';
 import { dashboard, login, register } from '@/routes';
 
@@ -68,13 +69,25 @@ const features = [
                     board, and let reminders land in your inbox so nothing slips
                     through the cracks.
                 </p>
-                <Button size="lg" as-child>
-                    <Link
-                        :href="$page.props.auth.user ? dashboard() : register()"
-                    >
-                        Start tracking
-                    </Link>
-                </Button>
+                <div class="flex flex-wrap items-center gap-3">
+                    <Button size="lg" as-child>
+                        <Link
+                            :href="
+                                $page.props.auth.user ? dashboard() : register()
+                            "
+                        >
+                            Start tracking
+                        </Link>
+                    </Button>
+                    <DemoButton size="lg" />
+                </div>
+                <p
+                    v-if="$page.props.demo.enabled && !$page.props.auth.user"
+                    class="text-sm text-muted-foreground"
+                >
+                    No sign-up needed: the demo opens a sample board you can
+                    edit freely.
+                </p>
             </section>
 
             <section class="grid gap-4 md:grid-cols-3">

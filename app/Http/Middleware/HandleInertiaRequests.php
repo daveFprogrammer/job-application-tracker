@@ -41,6 +41,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'demo' => [
+                'enabled' => (bool) config('demo.enabled'),
+                'resetAfterHours' => (int) config('demo.reset_after_hours'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }

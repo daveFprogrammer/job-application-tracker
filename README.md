@@ -4,7 +4,7 @@
 [![reminders](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/reminders.yml/badge.svg)](https://github.com/daveFprogrammer/job-application-tracker/actions/workflows/reminders.yml)
 [![Live demo](https://img.shields.io/badge/demo-onrender.com-46e3b7?logo=render&logoColor=white)](https://job-application-tracker-wdwn.onrender.com)
 
-**Demo live: [job-application-tracker-wdwn.onrender.com](https://job-application-tracker-wdwn.onrender.com)**: registrati con una tua email per provarla. Gira sul piano free di Render, quindi dopo 15 minuti di inattività va in sleep e la prima richiesta può impiegare 30-60 secondi.
+**Demo live: [job-application-tracker-wdwn.onrender.com](https://job-application-tracker-wdwn.onrender.com)**: clicca **Try the demo** per entrare senza registrarti in un account condiviso con una board già popolata, oppure registrati con una tua email. Gira sul piano free di Render, quindi dopo 15 minuti di inattività va in sleep e la prima richiesta può impiegare 30-60 secondi.
 
 Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board kanban** (Wishlist → Applied → Interviewing → Offer / Rejected) che si sposta con il **drag and drop**. Ogni candidatura ha i suoi **colloqui**, le sue **note** e i suoi **promemoria via email**, inviati in background da **code e job** di Laravel.
 
@@ -14,24 +14,29 @@ Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board
 
 - **Autenticazione completa** (Laravel Fortify): registrazione, verifica email, reset password, 2FA e passkey.
 - **Board kanban** con drag and drop (SortableJS tramite `vue-draggable-plus`), aggiornamento ottimistico della UI e persistenza dell'ordine lato server.
+- **Ricerca e filtri sulla board**: ricerca testuale su azienda, ruolo e sede, filtro per modalità di lavoro e opzione per nascondere i Rejected. I filtri vivono nella query string, quindi una vista filtrata si può salvare o condividere; mentre si filtra il drag and drop è in pausa, per non calcolare le posizioni su una colonna parziale.
 - **CRUD candidature**: azienda, ruolo, link all'annuncio, sede, modalità di lavoro, RAL, data di invio, descrizione.
 - **Colloqui** con tipo, data/ora, luogo o link, note e **promemoria automatico** il giorno prima (o un'ora prima se il colloquio è più vicino). Se il colloquio viene spostato, il promemoria lo segue.
+- **Storico degli stati**: ogni passaggio di colonna (dal form o con il drag and drop) viene registrato, e la pagina della candidatura mostra la timeline e da quanti giorni è nello stato attuale.
 - **Note** cronologiche per ogni candidatura (recap delle call, feedback, domande da fare).
 - **Promemoria personalizzati** (es. "ricontatta il recruiter") inviati via email all'orario scelto.
 - **Dashboard** con numeri della pipeline, tasso di risposta, prossimi colloqui e promemoria.
 - **Multi-utente**: ognuno vede e modifica solo i propri dati (policy dedicata, coperta da test).
+- **Account demo con un clic**: dalla landing o dal login si entra in un account condiviso con una board realistica. I dati si possono modificare liberamente e vengono ricostruiti ogni 24 ore, le email non partono mai, profilo e credenziali sono in sola lettura.
 
 ## Cosa dimostra
 
-| Area                                | Dove guardare                                                                                      |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------- |
-| CRUD, validazione, policy           | `app/Http/Controllers`, `app/Http/Requests`, `app/Policies`                                        |
-| Logica di dominio isolata in Action | `app/Actions/MoveJobApplication.php`, `app/Actions/SyncInterviewReminder.php`                      |
-| Drag and drop in Vue + Inertia      | `resources/js/pages/applications/Board.vue`                                                        |
-| Code, job e scheduler               | `app/Console/Commands/DispatchDueReminders.php`, `app/Jobs/SendReminder.php`, `routes/console.php` |
-| Idempotenza e concorrenza           | claim atomico di `queued_at` nel comando e controllo di `sent_at` nel job                          |
-| Test (PHPUnit, Postgres)            | `tests/Feature/Applications`, `tests/Feature/CronTest.php`                                         |
-| Container e deploy                  | `Dockerfile`, `docker/`, `render.yaml`, `.github/workflows`                                        |
+| Area                                | Dove guardare                                                                                                         |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| CRUD, validazione, policy           | `app/Http/Controllers`, `app/Http/Requests`, `app/Policies`                                                           |
+| Logica di dominio isolata in Action | `app/Actions/MoveJobApplication.php`, `app/Actions/SyncInterviewReminder.php`                                         |
+| Drag and drop in Vue + Inertia      | `resources/js/pages/applications/Board.vue`                                                                           |
+| Model observer e storico            | `app/Observers/JobApplicationObserver.php`, `app/Models/StatusChange.php`                                             |
+| Code, job e scheduler               | `app/Console/Commands/DispatchDueReminders.php`, `app/Jobs/SendReminder.php`, `routes/console.php`                    |
+| Idempotenza e concorrenza           | claim atomico di `queued_at` nel comando e controllo di `sent_at` nel job                                             |
+| Test (PHPUnit, Postgres)            | `tests/Feature/Applications`, `tests/Feature/CronTest.php`                                                            |
+| Account demo condiviso e sicuro     | `app/Actions/ResetDemoAccount.php`, `app/Http/Middleware/PreventDemoAccountChanges.php`, `tests/Feature/DemoTest.php` |
+| Container e deploy                  | `Dockerfile`, `docker/`, `render.yaml`, `.github/workflows`                                                           |
 
 ## Stack
 
@@ -61,7 +66,7 @@ flowchart LR
 
 **In locale** il comando gira ogni minuto grazie al container `scheduler` (`schedule:work`) e il container `queue` processa i job.
 
-**Su Render free** non esistono cron job né background worker, e l'istanza va in sleep dopo 15 minuti senza traffico. Per questo un workflow GitHub Actions (`.github/workflows/reminders.yml`) chiama ogni 30 minuti `POST /cron/run`, protetto da un bearer token. La richiesta sveglia l'istanza, esegue `reminders:dispatch` e svuota la coda con `queue:work --stop-when-empty`.
+**Su Render free** non esistono cron job né background worker, e l'istanza va in sleep dopo 15 minuti senza traffico. Per questo un workflow GitHub Actions (`.github/workflows/reminders.yml`) chiama ogni 30 minuti `POST /cron/run`, protetto da un bearer token. La richiesta sveglia l'istanza, esegue `reminders:dispatch`, svuota la coda con `queue:work --stop-when-empty` e, se sono passate più di 24 ore dall'ultimo reset, ricostruisce l'account demo (`demo:reset --if-stale`).
 
 Ho scelto questo approccio, e non un worker sempre acceso, per restare nei limiti gratuiti di **entrambi** i servizi. Un worker che interroga il DB ogni pochi secondi terrebbe sveglio Neon (autosuspend dopo 5 minuti di inattività) e consumerebbe le ore di compute gratuite. Il compromesso è che i promemoria hanno una precisione di circa 30 minuti, più che sufficiente per un colloquio fissato al giorno dopo.
 
@@ -89,7 +94,7 @@ composer install
 | Mailpit (email in uscita) | http://localhost:8025                                 |
 | PostgreSQL                | `localhost:5432` (utente `sail`, password `password`) |
 
-Il seeder crea un utente demo, `test@example.com` con password `password`, con una board già popolata.
+Il seeder crea un utente di test, `test@example.com` con password `password`, con una board casuale, e l'account demo condiviso (pulsante **Try the demo**, attivo con `DEMO_ENABLED=true`). Per ricostruire la board demo: `./vendor/bin/sail artisan demo:reset`.
 
 `sail up` avvia anche i container `queue` e `scheduler`: i promemoria scaduti arrivano in Mailpit entro un minuto.
 
@@ -160,12 +165,14 @@ L'immagine Docker è già pronta per un orchestratore. Il passaggio naturale è 
 
 ```text
 app/
-├── Actions/                 # logica di dominio (riordino board, promemoria colloqui)
-├── Console/Commands/        # reminders:dispatch
+├── Actions/                 # logica di dominio (riordino board, promemoria colloqui, reset demo)
+├── Console/Commands/        # reminders:dispatch, demo:reset
 ├── Enums/                   # ApplicationStatus, InterviewType, WorkMode
-├── Http/Controllers/        # JobApplication, Interview, Note, Reminder, Dashboard, Cron
+├── Http/Controllers/        # JobApplication, Interview, Note, Reminder, Dashboard, Demo, Cron
+├── Http/Middleware/         # PreventDemoAccountChanges (account demo in sola lettura)
 ├── Jobs/SendReminder.php    # job in coda
-├── Models/                  # JobApplication, Interview, Note, Reminder
+├── Models/                  # JobApplication, Interview, Note, Reminder, StatusChange
+├── Observers/               # storico degli stati delle candidature
 ├── Notifications/           # email del promemoria
 └── Policies/                # autorizzazione per proprietario
 resources/js/pages/
