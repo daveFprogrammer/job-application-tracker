@@ -5,6 +5,14 @@ export type ApplicationStatus =
     | 'offer'
     | 'rejected';
 
+export type WorkMode = 'remote' | 'hybrid' | 'onsite';
+
+export type BoardFilters = {
+    search: string;
+    work_mode: WorkMode | null;
+    hide_rejected: boolean;
+};
+
 export type Option<T extends string = string> = {
     value: T;
     label: string;
