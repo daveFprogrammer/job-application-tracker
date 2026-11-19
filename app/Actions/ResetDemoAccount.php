@@ -228,6 +228,12 @@ class ResetDemoAccount
                     'position_in_column' => $position,
                 ]);
 
+                // Replace the "created just now" entry with a believable journey.
+                $history = $this->history(ApplicationStatus::from($status), $data['applied_at'] ?? null, $position, $now);
+                $application->statusChanges()->delete();
+                $application->statusChanges()->createMany($history);
+                $application->forceFill(['created_at' => $history[0]['changed_at']])->saveQuietly();
+
                 foreach ($data['notes'] ?? [] as $body) {
                     $application->notes()->create(['body' => $body]);
                 }
@@ -255,5 +261,42 @@ class ResetDemoAccount
                 }
             }
         }
+    }
+
+    /**
+     * The path a card took to reach its column, with plausible dates.
+     *
+     * @return list<array{from_status: ApplicationStatus|null, to_status: ApplicationStatus, changed_at: CarbonImmutable}>
+     */
+    private function history(ApplicationStatus $status, ?CarbonImmutable $appliedAt, int $position, CarbonImmutable $now): array
+    {
+        $addedAt = ($appliedAt ?? $now->subDays(2 + $position * 3))->subDays(4)->setTime(9, 30);
+        $steps = [[ApplicationStatus::Wishlist, $addedAt]];
+
+        if ($appliedAt !== null) {
+            $steps[] = [ApplicationStatus::Applied, $appliedAt->setTime(10, 15)];
+        }
+
+        if ($appliedAt !== null && in_array($status, [ApplicationStatus::Interviewing, ApplicationStatus::Offer], true)) {
+            $steps[] = [ApplicationStatus::Interviewing, $appliedAt->addDays(5)->setTime(16, 40)];
+        }
+
+        if ($status === ApplicationStatus::Offer) {
+            $steps[] = [ApplicationStatus::Offer, $now->subDays(3)->setTime(12, 5)];
+        }
+
+        if ($appliedAt !== null && $status === ApplicationStatus::Rejected) {
+            $steps[] = [ApplicationStatus::Rejected, $appliedAt->addDays(10)->setTime(17, 20)];
+        }
+
+        $history = [];
+        $from = null;
+
+        foreach ($steps as [$to, $changedAt]) {
+            $history[] = ['from_status' => $from, 'to_status' => $to, 'changed_at' => $changedAt];
+            $from = $to;
+        }
+
+        return $history;
     }
 }

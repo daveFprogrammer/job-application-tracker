@@ -33,6 +33,7 @@ class JobApplicationResource extends JsonResource
             'interviews' => InterviewResource::collection($this->whenLoaded('interviews')),
             'notes' => NoteResource::collection($this->whenLoaded('notes')),
             'reminders' => ReminderResource::collection($this->whenLoaded('reminders')),
+            'status_changes' => StatusChangeResource::collection($this->whenLoaded('statusChanges')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -17,6 +17,7 @@ import NoteController from '@/actions/App/Http/Controllers/Applications/NoteCont
 import ReminderController from '@/actions/App/Http/Controllers/Applications/ReminderController';
 import JobApplicationController from '@/actions/App/Http/Controllers/JobApplicationController';
 import InterviewForm from '@/components/applications/InterviewForm.vue';
+import StatusTimeline from '@/components/applications/StatusTimeline.vue';
 import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import DateTimePicker from '@/components/DateTimePicker.vue';
 import InputError from '@/components/InputError.vue';
@@ -235,6 +236,11 @@ const workModeLabel = computed(
             </div>
 
             <div class="flex flex-col gap-6">
+                <StatusTimeline
+                    v-if="application.status_changes?.length"
+                    :changes="application.status_changes"
+                />
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Interviews</CardTitle>
