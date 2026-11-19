@@ -14,6 +14,7 @@ Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board
 
 - **Autenticazione completa** (Laravel Fortify): registrazione, verifica email, reset password, 2FA e passkey.
 - **Board kanban** con drag and drop (SortableJS tramite `vue-draggable-plus`), aggiornamento ottimistico della UI e persistenza dell'ordine lato server.
+- **Ricerca e filtri sulla board**: ricerca testuale su azienda, ruolo e sede, filtro per modalità di lavoro e opzione per nascondere i Rejected. I filtri vivono nella query string, quindi una vista filtrata si può salvare o condividere; mentre si filtra il drag and drop è in pausa, per non calcolare le posizioni su una colonna parziale.
 - **CRUD candidature**: azienda, ruolo, link all'annuncio, sede, modalità di lavoro, RAL, data di invio, descrizione.
 - **Colloqui** con tipo, data/ora, luogo o link, note e **promemoria automatico** il giorno prima (o un'ora prima se il colloquio è più vicino). Se il colloquio viene spostato, il promemoria lo segue.
 - **Note** cronologiche per ogni candidatura (recap delle call, feedback, domande da fare).
