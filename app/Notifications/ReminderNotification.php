@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\Reminder;
+use App\Models\User;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -15,6 +16,11 @@ class ReminderNotification extends Notification
      */
     public function via(object $notifiable): array
     {
+        // The demo account has a fake address: reminders are marked as sent, never emailed.
+        if ($notifiable instanceof User && $notifiable->is_demo) {
+            return [];
+        }
+
         return ['mail'];
     }
 

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Actions\ResetDemoAccount;
 use App\Enums\ApplicationStatus;
 use App\Models\Interview;
 use App\Models\JobApplication;
@@ -16,12 +17,14 @@ class DatabaseSeeder extends Seeder
     use WithoutModelEvents;
 
     /**
-     * Seed a demo account with a realistic board.
+     * Seed a local test account with a random board, plus the shared demo account.
      */
-    public function run(): void
+    public function run(ResetDemoAccount $demo): void
     {
+        $demo->handle();
+
         $user = User::factory()->create([
-            'name' => 'Demo User',
+            'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
