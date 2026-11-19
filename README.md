@@ -17,6 +17,7 @@ Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board
 - **Ricerca e filtri sulla board**: ricerca testuale su azienda, ruolo e sede, filtro per modalità di lavoro e opzione per nascondere i Rejected. I filtri vivono nella query string, quindi una vista filtrata si può salvare o condividere; mentre si filtra il drag and drop è in pausa, per non calcolare le posizioni su una colonna parziale.
 - **CRUD candidature**: azienda, ruolo, link all'annuncio, sede, modalità di lavoro, RAL, data di invio, descrizione.
 - **Colloqui** con tipo, data/ora, luogo o link, note e **promemoria automatico** il giorno prima (o un'ora prima se il colloquio è più vicino). Se il colloquio viene spostato, il promemoria lo segue.
+- **Storico degli stati**: ogni passaggio di colonna (dal form o con il drag and drop) viene registrato, e la pagina della candidatura mostra la timeline e da quanti giorni è nello stato attuale.
 - **Note** cronologiche per ogni candidatura (recap delle call, feedback, domande da fare).
 - **Promemoria personalizzati** (es. "ricontatta il recruiter") inviati via email all'orario scelto.
 - **Dashboard** con numeri della pipeline, tasso di risposta, prossimi colloqui e promemoria.
@@ -30,6 +31,7 @@ Un tracker per la ricerca di lavoro: ogni candidatura è una card su una **board
 | CRUD, validazione, policy           | `app/Http/Controllers`, `app/Http/Requests`, `app/Policies`                                                           |
 | Logica di dominio isolata in Action | `app/Actions/MoveJobApplication.php`, `app/Actions/SyncInterviewReminder.php`                                         |
 | Drag and drop in Vue + Inertia      | `resources/js/pages/applications/Board.vue`                                                                           |
+| Model observer e storico            | `app/Observers/JobApplicationObserver.php`, `app/Models/StatusChange.php`                                             |
 | Code, job e scheduler               | `app/Console/Commands/DispatchDueReminders.php`, `app/Jobs/SendReminder.php`, `routes/console.php`                    |
 | Idempotenza e concorrenza           | claim atomico di `queued_at` nel comando e controllo di `sent_at` nel job                                             |
 | Test (PHPUnit, Postgres)            | `tests/Feature/Applications`, `tests/Feature/CronTest.php`                                                            |
@@ -169,7 +171,8 @@ app/
 ├── Http/Controllers/        # JobApplication, Interview, Note, Reminder, Dashboard, Demo, Cron
 ├── Http/Middleware/         # PreventDemoAccountChanges (account demo in sola lettura)
 ├── Jobs/SendReminder.php    # job in coda
-├── Models/                  # JobApplication, Interview, Note, Reminder
+├── Models/                  # JobApplication, Interview, Note, Reminder, StatusChange
+├── Observers/               # storico degli stati delle candidature
 ├── Notifications/           # email del promemoria
 └── Policies/                # autorizzazione per proprietario
 resources/js/pages/
